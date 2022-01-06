@@ -41,3 +41,15 @@ Step by step-
   * Again, the output of this netwrok is added to its input as a residual connection and is the normalized. 
   * Note that, idea of using residual connections is to help the network train well by allowing gradients to flow through the netwrok without exploding or getting lost. Layer Normalizations helps in stabilizing networks, in substantially reducing the traiining time needed for the network. Position-wise feed-forward layers further process the attention outputs and enrich the represenations contained in it.
 
+Encoders can be stacked N number of times, in the paper the authors suggest stacking for N=6 times. Each block will learn the attention representations in its own way, there by boosting the understanding of language for the transformer network.
+
+---------
+
+Encoder output is encoded representation with attention information.Idea is that Decoder will have the focus on appropriate words of the input sequence during decoding process. Decoder block basically generate text sequences. 
+ * Decoder has similar structure as Encoder - It has two multi-headed attention layers, one point-wise feed-forward linear layer, residual connections after each sub-layer (multi headed attention layers and the feed-forward layers).
+ * The Decoder is *Auto-Regressive* meaning any word that it is generating at timestamp t, will depend on rest of the words generated before timestamp t.
+ * Decoder takes as an input the encoder sequence with attention information plus the previous output that it itself has generated. For the Decoder to stop generating the words it has to generate the end token as the output.
+ * Breaking down Decoder processing :
+     * *Input* to the decoder goes through the embedding layer followed by the positional encoding layer to give the *positional embeddings*.
+     * These embeding are then fed into first multi-headed layer to compute the attention score for input at Decoder. 
+ 
