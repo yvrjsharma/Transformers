@@ -48,8 +48,21 @@ Encoders can be stacked N number of times, in the paper the authors suggest stac
 Encoder output is encoded representation with attention information.Idea is that Decoder will have the focus on appropriate words of the input sequence during decoding process. Decoder block basically generate text sequences. 
  * Decoder has similar structure as Encoder - It has two multi-headed attention layers, one point-wise feed-forward linear layer, residual connections after each sub-layer (multi headed attention layers and the feed-forward layers).
  * The Decoder is *Auto-Regressive* meaning any word that it is generating at timestamp t, will depend on rest of the words generated before timestamp t.
- * Decoder takes as an input the encoder sequence with attention information plus the previous output that it itself has generated. For the Decoder to stop generating the words it has to generate the end token as the output.
+ * Decoder takes as an input the encoder sequence with attention information plus the previous output as an input that it itself has generated. For the Decoder to stop generating the words it has to generate the end token as the output.
  * Breaking down Decoder processing :
      * *Input* to the decoder goes through the embedding layer followed by the positional encoding layer to give the *positional embeddings*.
-     * These embeding are then fed into first multi-headed layer to compute the attention score for input at Decoder. 
+     * These embeding are then fed into first multi-headed layer to compute the attention score for Decoder's inputs. 
+     * Decoders are Auto-Regressive and generates the sequence word-by-word, so this Multi-headed attention layer has to work bit differently. It has *masking* capability which allows it to avoid calculting attention scores on *future* input tokens/bvector. Any word token should only be allowed to access itself or any words occuring before it. 
+     * Right after matrix multiplication and scaling is done, the authors applied a Look-Ahead Mask before applying the softmax to get probabilities. Softmax makes the attention scores zero for future words.
+     * Like encoder, this multi headed attention layer has multiple heads to which masks are being applied to and this all then gets concateneated before getting processed by a Linear Layer.
+     * The output of this first multi-headed attention layer is a *masked output vector* with information how the model should handle the Decoder inputs.
+     * Now the second multi headed attention layer has the *encoder out* as its input Queries and Keys, while first multi-headed attention layer's output as Values. This helps in matching the Encoders Input (Text in one language) to Decoders Input (translated text word by word), which allows decoder to decide which part of input to put focus on or to attend to.
+     * The output of this second  multi-headed attention layer goes into point-wise feed-forward layer for more processing.
+     * Lastly the above output goes through the final Linear layer which acts as a Classification layer. This classifier is as big as the number of classes or in this case all possible second language words you have in vocabulary. Example, 10,000 classes or outputs for 10,000 words and so on.
+     * Output of classifier is then passed through a Softmax layer to convert these values into probabilities scores between 0 and 1. The index of the word with highest probability gets predicted as final outcome!
+     * Lastly, the Decoder takes this output and adds it to the list of Decoder inputs and continue the process again till the *end token* gets predicted.
+
+* Note that the Decoder can be stacked N layers high as well. Each layer tking inupt from the Encoder *block* and the decoder layer just below it. Such stacking of layers helps model to extract and focus different combination of attention from its attention heads, there by boosting the prediction power!
+
+This completes the explanation of Transformer architecture.
  
